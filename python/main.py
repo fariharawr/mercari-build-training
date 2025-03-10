@@ -1,20 +1,20 @@
 import os
 import logging
-import json
-import hashlib
 import pathlib
-from fastapi import FastAPI, Form, HTTPException, Depends
+from fastapi import FastAPI, Form, HTTPException, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+import json
+import hashlib
 
 
 # Define the path to the images & sqlite3 database
 images = pathlib.Path(__file__).parent.resolve() / "images"
 db = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
-items_file = pathlib.Path(__file__).parent.resolve() / "items.json"
+
 
 def get_db():
     if not db.exists():
@@ -66,34 +66,65 @@ def hello():
 class AddItemResponse(BaseModel):
     message: str
 
-#added
-    
+
 # add_item is a handler to add a new item for POST /items .
 @app.post("/items", response_model=AddItemResponse)
-def insert_item(item: Item):
-    logger.info(f"Inserting item: {item.dict()}")
-    try:
-        with open(items_file, "r") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {"items": []}
-    except json.decoder.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON: {e}")
-        return #Exit the function, or raise an exception.
+async def add_item(
+    name: str = Form(...),
+    category: str = Form(...),
+    image: UploadFile = File(...),
+    db: sqlite3.Connection = Depends(get_db),
+):
+    if not name:
+        raise HTTPException(status_code=400, detail="name is required")
 
-    data["items"].append(item.dict())
+   # insert_item(Item(name=name))
+   # return AddItemResponse(**{"message": f"item received: {name}"})
 
-    try:
-        with open(items_file, "w") as f:
-            json.dump(data, f, indent=4)
-        logger.info(f"Item inserted successfully: {item.dict()}")
-    except Exception as e:
-        logger.error(f"Error writing to JSON: {e}")
+    if not category:
+        raise HTTPException(status_code=400, detail="category is required")
+    if not image:
+        raise HTTPException(status_code=400, detail="category is required")
+    content = await image.read()
+    hashedimg = hashlib.sha256(content).hexdigest()
+    image_path = images/ f"{hashedimg}.jpg"
+    with open(image_path, "wb") as a:
+        a.write(content)
 
+    insert_item(Item(name=name, category=category, image=hashedimg + ".jpg"))
+    return AddItemResponse(**{"message": f"item received: {name}"}) 
+
+
+# STEP 4-3: return items for GET /items .
+@app.get("/items")
+def get_items():
+    if not os.path.exists("items.json"):
+        return []
+
+    with open("items.json", "r") as f:
+        items = json.load(f)
+
+    return items
+
+# STEP 4-5 #new
+@app.get("/items/{item_id}")
+def get_item_by_id(item_id: int):
+    #item_idint = int(item_id)
+    if not os.path.exists("items.json"):
+        return []
+
+    with open("items.json", "r") as f:
+        alldata = json.load(f)
+    ###added
+    if not isinstance(alldata, list):
+        return {"error":"Invalid data format in items.json"}
+
+    item= alldata["items"][item_id -1] 
+    return item
 
 # get_image is a handler to return an image for GET /images/{filename} .
 @app.get("/image/{image_name}")
-async def get_image(image_name):
+async def get_image(image_name: str):
     # Create image path
     image = images / image_name
 
@@ -109,19 +140,26 @@ async def get_image(image_name):
 
 class Item(BaseModel):
     name: str
+    category:str 
+    #image
+    image: str
 
 
 def insert_item(item: Item):
-    # STEP 4-1: add an implementation to store an item
-    try:
-        with open(items_file, "r") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {"items": []}
+    # STEP 4-2: add an implementation to store an item
+   # pass
+    item_dict = {"name": item.name, "category": item.category, "image": item.image}
 
-    data["items"].append(item.dict()) #add the item as a dictionary.
+    if os.path.exists("items.json"):
+        with open("items.json", "r") as f:
+            try:
+                items = json.load(f)
+            except json.JSONDecodeError:
+                items = []
+    else:
+        items = []
 
-    with open(items_file, "w") as f:
-        json.dump(data, f, indent=4) #write the data back to the file with indentation.
+    items.append(item_dict)
 
-   
+    with open("items.json", "w") as f:
+        json.dump(items, f, indent=2)
