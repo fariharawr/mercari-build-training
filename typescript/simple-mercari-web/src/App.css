@@ -25,12 +25,12 @@
 }
 
 .ItemList {
-  background-color: #705371;
+  background-color: #705371; 
   min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   font-size: calc(10px + 1vmin);
   color: white;
 }

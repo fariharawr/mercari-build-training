@@ -7,10 +7,12 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL + '/image/';
 interface Prop {
   reload: boolean;
   onLoadCompleted: () => void;
+  keyword: string;
 }
 
-export const ItemList = ({ reload, onLoadCompleted }: Prop) => {
+export const ItemList = ({ reload, onLoadCompleted, keyword }: Prop) => {
   const [items, setItems] = useState<Item[]>([]);
+
   useEffect(() => {
     const fetchData = () => {
       fetchItems()
@@ -24,28 +26,32 @@ export const ItemList = ({ reload, onLoadCompleted }: Prop) => {
         });
     };
 
-    if (reload) {
+    if (reload || keyword) {
       fetchData();
     }
-  }, [reload, onLoadCompleted]);
+  }, [reload, keyword, onLoadCompleted]);
+
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(keyword.toLowerCase())
+  );
 
   return (
-    <div className='ItemList'>
-      {items?.map((item) => {
-        return (
-          <div key={item.id} className="ItemList">
-            {/* TODO: Task 2: Show item images */}
-            {/* basically localhost:3000/image/image_name */}
+    <div className="ItemList">
+      {filteredItems.length > 0 ? (
+        filteredItems.map((item) => (
+          <div key={item.id} className="Item">
+            <img className="Image" src={`${BASE_URL}${item.id}.jpg`} alt={item.name} />
 
-            <img className Image src={BASE_URL+item.image_name} />
             <p>
               <span>Name: {item.name}</span>
               <br />
               <span>Category: {item.category}</span>
             </p>
           </div>
-        );
-      })}
+        ))
+      ) : (
+        <p>No items found</p>
+      )}
     </div>
   );
 };
