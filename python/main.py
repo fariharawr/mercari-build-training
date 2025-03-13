@@ -15,7 +15,7 @@ from typing import Dict, List
 
 # Define the path to the images & sqlite3 database
 images = pathlib.Path(__file__).parent.resolve() / "images"
-db = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
+db = pathlib.Path(__file__).parent.resolve() /"db"/ "mercari.sqlite3"
 #when executing in cmd, go to path until python folder 
 #
 
@@ -111,24 +111,26 @@ def get_items(db: sqlite3.Connection = Depends(get_db)):
 
 
 #step 5:1 GET /items
-def get_items_from_database(db: sqlite3.Connection)-> Dict[str, List[Dict[str, str]]]:
-    cursor = db.cursor() 
-    # Query the Items table
-    # STEP 5-8 change to get category from category table not just id
+def get_items_from_database(db: sqlite3.Connection) -> Dict[str, List[Dict[str, str]]]:
+    cursor = db.cursor()
     query = """
-    SELECT items.name, category.name AS category, items.image_name
+    SELECT items.id, items.name, category.name AS category, items.image_name
     FROM items
     JOIN category
     ON category_id = category.id 
-"""
-##view get items or insert items!!
+    """
+    #view item
     cursor.execute(query)
     rows = cursor.fetchall()
-    items_list = [{"name": name, "category": category, "image_name": image_name} for name, category, image_name in rows]
+    items_list = [{"id": id, "name": name, "category": category, "image_name": image_name} for id, name, category, image_name in rows]
     result = {"items": items_list}
     cursor.close()
 
     return result
+
+
+    return result
+
 
 def get_items_from_database_by_id(id: int, db: sqlite3.Connection) -> Dict[str, List[Dict[str,str]]]:
     cursor = db.cursor()
@@ -173,32 +175,63 @@ def get_item_by_id(item_id: int, db: sqlite3.Connection = Depends(get_db)):
 
     return FileResponse(image)
 #get_image is a handler to return an image for GET /images/{filename}
+# @app.get("/image/{item_id}.jpg")
+# def get_image_by_id(item_id: int, conn: sqlite3.Connection = Depends(get_db)):
+#     # Fetch the hashed image name from the database based on item_id
+#     cur = conn.cursor()
+#     cur.execute("SELECT image_name FROM items WHERE id = ?", (item_id,))
+#     row = cur.fetchone()
+#     print(row)
+    
+#     if not row:
+#         raise HTTPException(status_code=404, detail="Item not found")
+
+#     # Get the hashed image name from the query result
+#     image_name = row[0]
+
+#     # Ensure the filename has a .jpg extension
+#     if not image_name.endswith(".jpg"):
+#         image_name += ".jpg"
+
+#     image_path = images / image_name
+#     #print(image_path)
+
+#     # Check if the image exists
+#     if not image_path.exists():
+#         logger.debug(f"Image not found: {image_path}, returning default.jpg")
+#         return FileResponse(images / "default.jpg", media_type="image/jpeg")
+
+#     return FileResponse(image_path, media_type="image/jpeg")
+
 @app.get("/image/{item_id}.jpg")
 def get_image_by_id(item_id: int, conn: sqlite3.Connection = Depends(get_db)):
-    # Fetch the hashed image name from the database based on item_id
+    print(f"get_image_by_id called with item_id: {item_id}")  # Debugging
+    
     cur = conn.cursor()
     cur.execute("SELECT image_name FROM items WHERE id = ?", (item_id,))
     row = cur.fetchone()
     
     if not row:
+        print(f"No image found for item_id: {item_id}")  # Debugging
         raise HTTPException(status_code=404, detail="Item not found")
 
-    # Get the hashed image name from the query result
     image_name = row[0]
+    print(f"Fetched image name from DB: {image_name}")  # Debugging
 
-    # Ensure the filename has a .jpg extension
+    # Ensure filename ends with .jpg
     if not image_name.endswith(".jpg"):
         image_name += ".jpg"
 
     image_path = images / image_name
-    #print(image_path)
+    print(f"Image path to be served: {image_path}")  # Debugging
 
-    # Check if the image exists
     if not image_path.exists():
-        logger.debug(f"Image not found: {image_path}, returning default.jpg")
+        print(f"Image not found, returning default.jpg")  # Debugging
         return FileResponse(images / "default.jpg", media_type="image/jpeg")
 
     return FileResponse(image_path, media_type="image/jpeg")
+
+
 
 @app.get("/search")
 def search_keyword(keyword: str = Query(...), db: sqlite3.Connection = Depends(get_db)):

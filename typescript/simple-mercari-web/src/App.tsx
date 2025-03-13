@@ -14,15 +14,15 @@ function App() {
   };
 
   return (
-    <div>
+    <div className='TitleDiv'>
       <header className="Title">
         <p>
           <b>Simple Mercari</b>
         </p>
       </header>
-      <div>
+      <div className='ListingBody'>
         <Listing onListingCompleted={() => setReload(true)} /> 
-        <h2>Search</h2>
+        <h2 className="search-header">Search</h2>
         <input ref={InputRef} type='text' placeholder='Search'/>
         <button onClick={handleSubmit}>Search</button>
       </div>

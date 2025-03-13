@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Item, fetchItems } from '~/api';
 
 const PLACEHOLDER_IMAGE = import.meta.env.VITE_FRONTEND_URL + '/logo192.png';
-const BASE_URL = import.meta.env.VITE_BACKEND_URL + '/image/';
+const BASE_URL = "http://localhost:9000/image/";
 
 interface Prop {
   reload: boolean;
