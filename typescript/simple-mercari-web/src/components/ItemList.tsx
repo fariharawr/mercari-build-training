@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 import { Item, fetchItems } from '~/api';
 
 const PLACEHOLDER_IMAGE = import.meta.env.VITE_FRONTEND_URL + '/logo192.png';
+const BASE_URL = "http://localhost:9000/image/";
 
 interface Prop {
   reload: boolean;
   onLoadCompleted: () => void;
+  keyword: string;
 }
 
-export const ItemList = ({ reload, onLoadCompleted }: Prop) => {
+export const ItemList = ({ reload, onLoadCompleted, keyword }: Prop) => {
   const [items, setItems] = useState<Item[]>([]);
+
   useEffect(() => {
     const fetchData = () => {
       fetchItems()
@@ -23,26 +26,32 @@ export const ItemList = ({ reload, onLoadCompleted }: Prop) => {
         });
     };
 
-    if (reload) {
+    if (reload || keyword) {
       fetchData();
     }
-  }, [reload, onLoadCompleted]);
+  }, [reload, keyword, onLoadCompleted]);
+
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(keyword.toLowerCase())
+  );
 
   return (
-    <div>
-      {items.map((item) => {
-        return (
-          <div key={item.id} className="ItemList">
-            {/* TODO: Task 2: Show item images */}
-            <img src={PLACEHOLDER_IMAGE} />
+    <div className="ItemList">
+      {filteredItems.length > 0 ? (
+        filteredItems.map((item) => (
+          <div key={item.id} className="Item">
+            <img className="Image" src={`${BASE_URL}${item.id}.jpg`} alt={item.name} />
+
             <p>
               <span>Name: {item.name}</span>
               <br />
               <span>Category: {item.category}</span>
             </p>
           </div>
-        );
-      })}
+        ))
+      ) : (
+        <p>No items found</p>
+      )}
     </div>
   );
 };

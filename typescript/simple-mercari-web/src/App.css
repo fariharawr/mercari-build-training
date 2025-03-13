@@ -1,42 +1,93 @@
 .App {
   text-align: center;
+  background-color: #705371;
+  min-height: 100vh; /* Make sure it fills the entire viewport */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  display: block;
+  justify-content: flex-start; /* Align to the top and let content flow */
 }
 
-.Title {
-  background-color: #222427;
+.TitleDiv {
+  background-color: #705371;
   min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: left;
+  font-size: calc(12px + 1vmin);
+  color: rgb(99, 79, 96);
+  
+}
+
+.Title {
+  background-color: #705371;
+  min-height: 8vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: left;
+  font-size: calc(20px + 1vmin);
+  color: rgb(255, 255, 255);
+  box-sizing: border-box;
+  width: 100%; /* Or specify a fixed width */
+  margin: 0 auto;
+}
+
+.Listing {
+  background-color: #705371;
+  min-height: 15vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   font-size: calc(10px + 1vmin);
   color: white;
 }
 
-.Listing {
-  background-color: #222427;
-  min-height: 8vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: left;
-  font-size: calc(10px + 1vmin);
+.search-header {
+  background-color: #705371; /* Light gray background */
+  text-align: center; /* Center the text */
+  font-size: calc(15px + 1vmin);
+  color: white;
+}
+
+.ListingBody {
+  background-color: #705371; /* Light gray background */
+  text-align: center; /* Center the text */
+  font-size: calc(15px + 1vmin);
+  color: white;
+}
+.search-button {
+  background-color: #705371; /* Light gray background */
+  text-align: center; /* Center the text */
   color: white;
 }
 
 .ItemList {
-  background-color: #222427;
+  background-color: #705371; 
   min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   font-size: calc(10px + 1vmin);
   color: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
 .App-link {
-  color: #61dafb;
+  color: #386e7d;
+}
+
+
+.Image{
+  aspect-ratio: 1/1;
+  padding: 20px;
+  height: 200px;
+  width: 200px;
 }
 
 @keyframes App-logo-spin {
